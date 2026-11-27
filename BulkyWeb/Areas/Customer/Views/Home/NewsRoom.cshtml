@@ -1,0 +1,284 @@
+﻿@model HomeVM
+
+@{
+    ViewData["Title"] = "News Room";
+    IEnumerable<Category> mainCategories = ViewBag.MainCategories;
+}
+
+<style>
+    /* =========================================================
+       NEWS ROOM GALLERY STYLES
+       ========================================================= */
+    .news-gallery-section {
+        padding: 40px 0 80px;
+    }
+
+    .news-gallery-card {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(6, 29, 51, 0.08);
+        background: #ffffff;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: 1px solid rgba(6, 29, 51, 0.08);
+        display: block;
+    }
+
+    .news-gallery-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(6, 29, 51, 0.18);
+        border-color: rgba(212, 175, 55, 0.4);
+    }
+
+    .news-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background-color: #061d33;
+    }
+
+    .news-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.5s ease;
+    }
+
+    .news-gallery-card:hover .news-img {
+        transform: scale(1.08);
+    }
+
+    /* Hover Overlay & Zoom Icon */
+    .news-gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(6, 29, 51, 0.55);
+        backdrop-filter: blur(3px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .news-gallery-card:hover .news-gallery-overlay {
+        opacity: 1;
+    }
+
+    .news-icon-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f5d47a 0%, #d4af37 100%);
+        color: #061d33;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        transform: scale(0.7);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .news-gallery-card:hover .news-icon-btn {
+        transform: scale(1);
+    }
+
+    /* =========================================================
+       CUSTOM IMAGE DIALOG / LIGHTBOX STYLES
+       ========================================================= */
+    .image-dialog-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(4, 20, 36, 0.92);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        padding: 20px;
+    }
+
+    .image-dialog-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .image-dialog-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        transform: scale(0.85);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .image-dialog-overlay.active .image-dialog-content {
+        transform: scale(1);
+    }
+
+    .image-dialog-content img {
+        max-width: 90vw;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        border: 2px solid rgba(212, 175, 55, 0.5);
+    }
+
+    .image-dialog-close {
+        position: absolute;
+        top: -45px;
+        right: -10px;
+        background: #d4af37;
+        color: #061d33;
+        border: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.2s;
+    }
+
+    .image-dialog-close:hover {
+        background: #ffffff;
+        transform: scale(1.1);
+    }
+</style>
+
+<!-- HEADER BANNER -->
+<div class="emdad-header emdad-after-overlay overlay-lighter bg-rules"
+     style="background-image: url('/assets/custom/Board Of Directors/Board Of Directors.jpg'); direction:ltr; background-attachment: fixed;">
+    <div class="container overflow-hidden">
+        <div class="owl-carousel default-carousel emdad-sqr-nav dots-0 wow fadeInUpBig" style="text-align: center;" data-wow-duration="2s">
+            <div>
+                <h1 class="white-color bold-font mt-lg-5 mb-4">
+                    <span class="text-white">
+                        @localizer["WelcomeNewsRoom"]
+                        <br />
+                    </span>
+                </h1>
+                <p class="text-white font-20">
+                    @localizer["WelcomeNewsRoomContent"]
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GALLERY SECTION (ONLY IMAGES IN DIALOG) -->
+<section class="news-gallery-section">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- IMAGE 1 -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="news-gallery-card" onclick="openImageDialog(this)">
+                    <div class="news-img-wrapper">
+                        <img src="@Url.Content("~/assets/custom/NewsRoom/زيارة سفارة دوله سيراليون.jpeg")" alt="News Image" class="news-img" loading="lazy" />
+                        <div class="news-gallery-overlay">
+                            <div class="news-icon-btn">
+                                <i class="fas fa-expand"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMAGE 2 -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="news-gallery-card" onclick="openImageDialog(this)">
+                    <div class="news-img-wrapper">
+                        <img src="@Url.Content("~/assets/custom/NewsRoom/زيارة سفارة جيبوتي.jpeg")" alt="News Image" class="news-img" loading="lazy" />
+                        <div class="news-gallery-overlay">
+                            <div class="news-icon-btn">
+                                <i class="fas fa-expand"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMAGE 3 -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="news-gallery-card" onclick="openImageDialog(this)">
+                    <div class="news-img-wrapper">
+                        <img src="@Url.Content("~/assets/custom/NewsRoom/زياره سفارة دولة موريتانيا.jpeg")" alt="News Image" class="news-img" loading="lazy" />
+                        <div class="news-gallery-overlay">
+                            <div class="news-icon-btn">
+                                <i class="fas fa-expand"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMAGE 4 -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="news-gallery-card" onclick="openImageDialog(this)">
+                    <div class="news-img-wrapper">
+                        <img src="@Url.Content("~/assets/custom/NewsRoom/زيارة شركة أليكس ويتك.jpeg")" alt="News Image" class="news-img" loading="lazy" />
+                        <div class="news-gallery-overlay">
+                            <div class="news-icon-btn">
+                                <i class="fas fa-expand"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- DIALOG MODAL CONTAINER -->
+<div id="customImageDialog" class="image-dialog-overlay" onclick="closeImageDialog(event)">
+    <div class="image-dialog-content">
+        <button class="image-dialog-close" onclick="forceCloseImageDialog()">&times;</button>
+        <img id="dialogImageTarget" src="" alt="Zoomed Image" />
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openImageDialog(cardElement) {
+            const imgSource = cardElement.querySelector('.news-img').src;
+            const dialogOverlay = document.getElementById('customImageDialog');
+            const dialogImg = document.getElementById('dialogImageTarget');
+
+            dialogImg.src = imgSource;
+            dialogOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // منع السكرول خلف الصورة
+        }
+
+        function closeImageDialog(event) {
+            // إغلاق النافذة فقط عند الضغط خارج الصورة
+            if (event.target.id === 'customImageDialog') {
+                forceCloseImageDialog();
+            }
+        }
+
+        function forceCloseImageDialog() {
+            const dialogOverlay = document.getElementById('customImageDialog');
+            dialogOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto'; // إعادة السكرول
+        }
+
+        // إغلاق بمفتاح Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                forceCloseImageDialog();
+            }
+        });
+    </script>
+}
